@@ -102,10 +102,8 @@
 ($ [:not :lat :lon] ds)
 
 ;; clojure.core
-(reduce #(conj %1 (:age %2))
-        () user-info)
-(reduce #(conj %1 ((juxt :gender :age) %2))
-        () user-info)
+(map :age user-info)
+(map (juxt :gender :age) user-info)
 
 )
 
@@ -117,6 +115,7 @@
      :cols [:age :gender])
 
 )
+
 ;; would be nice if we could bundle up a "view" into a single symbol ...
 
 (defn flat-map [x] (interleave (keys x) (vals x)))
@@ -156,8 +155,7 @@
 ((juxt mean sd) ($ :age ds))
 
 ;; clojure.core
-((juxt mean sd) (reduce #(conj %1 (:age %2))
-                        () user-info))
+((juxt mean sd) (map :age user-info))
 
 )
 
@@ -241,7 +239,7 @@
                {} reduction))))
 
 (reduce-by :gender
-           (fn [res x] (+ res (:age x)))
+           (fn [res x] (+ res (:activity x)))
            0 user-info)
 
 (reduce-by :gender
