@@ -167,6 +167,19 @@
     ($rollup sd :activity :gender)
     ($order :activity :desc))
 
+;; clojure.core
+(defn reduce-by
+  [key-fn f init coll]
+  (reduce (fn [res x]
+            (let [k (key-fn x)]
+              (assoc res k (f (res k init) x))))
+          {} coll))
+
+(reduce-by :gender
+           (fn [res x] (+ res (:age x)))
+           0 user-info)
+
+
 
 ;; ---- Shaping Data ----
 
