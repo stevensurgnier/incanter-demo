@@ -42,14 +42,12 @@
   (let [args (if (nil? ms) m
                  (conj ms m))]
     (reduce (fn [res x] (reduce conj res x))
-            []
-            args)))
+            [] args)))
 
 (defn group-by-merge [f coll]
         (reduce (fn [x [k v]]
                   (assoc x k (apply merge v)))
-                {}
-                (group-by f coll)))
+                {} (group-by f coll)))
 
 (def user-info-indexed (group-by-merge :user-id (concat-maps age gender activity location)))
 (def user-info (vals user-info-indexed))
