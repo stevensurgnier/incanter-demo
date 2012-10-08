@@ -168,17 +168,27 @@
     ($order :activity :desc))
 
 ;; clojure.core
+
 (defn reduce-by
-  [key-fn f init coll]
-  (reduce (fn [res x]
-            (let [k (key-fn x)]
-              (assoc res k (f (res k init) x))))
-          {} coll))
+  ([key-fn f init coll]
+     (reduce (fn [res x]
+               (let [k (key-fn x)]
+                 (assoc res k (f (res k init) x))))
+             {} coll))
+  ([key-fn f init coll after]
+     (let [reduction (reduce-by key-fn f init coll)]
+       (reduce (fn [res x]
+                 (assoc res (key x) (after (val x))))
+               {} reduction))))
 
 (reduce-by :gender
            (fn [res x] (+ res (:age x)))
            0 user-info)
 
+(reduce-by :gender
+           (fn [res x] (conj res (:age x)))
+           () user-info
+           mean)
 
 
 ;; ---- Shaping Data ----
