@@ -55,8 +55,12 @@
 (def ds (to-dataset user-info))
 
 ;; some useful functions
+(comment
+  
 (head ds)
 (summary ds)
+
+)
 
 
 ;; ---- Selecting Rows ----
@@ -64,6 +68,8 @@
 ;; ($ rows cols dataset)
 ;; alias for ...
 ;; (sel dataset :rows rows :cols cols)
+(comment
+  
 ($ (range 2 4) :all ds)
 ($ [0 1 2] [:age :gender] ds)
 
@@ -86,9 +92,11 @@
 ;; with index
 (filter #(> (-> % val :age) 25) user-info-indexed)
 
+)
 
 ;; ---- Selecting Columns ----
-
+(comment
+  
 ($ :age ds)
 ($ [:user-id :gender] ds)
 ($ [:not :lat :lon] ds)
@@ -99,13 +107,16 @@
 (reduce #(conj %1 ((juxt :gender :age) %2))
         () user-info)
 
+)
 
 ;; ---- Creating Views ----
-
+(comment
+  
 (sel ($where {:gender :m} ds)
      :rows (range 4)
      :cols [:age :gender])
 
+)
 ;; would be nice if we could bundle up a "view" into a single symbol ...
 
 (defn flat-map [x] (interleave (keys x) (vals x)))
@@ -127,11 +138,16 @@
   (partial create-view query-config))
 
 ;; now you can apply a query configuration to arbitrary datasets
+(comment
+  
 (age-gender-query-partial ds)
+ 
+)
 
 
 ;; ---- Applying functions to columns ----
-
+(comment
+  
 (with-data ds
   [(mean ($ :age))
    (sd ($ :age))])
@@ -143,9 +159,11 @@
 ((juxt mean sd) (reduce #(conj %1 (:age %2))
                         () user-info))
 
+)
 
 ;; ---- Ordering Data ----
-
+(comment
+  
 ($order [:gender :age] :desc ds)
 
 ;; clojure.core
@@ -155,17 +173,58 @@
 ;; with index
 (sort-by #((juxt :gender :age) (val %)) user-info-indexed)
 
+)
 
 ;; ---- Apply a function to groups of rows ----
-
+(comment
+  
 ($rollup mean :age :gender ds)
+  
 ;; applying lambdas
 ($rollup #(/ (apply + %) (count %)) :age :gender ds)
 
 ;; use the thread-last macro to compose functions
 (->> ds
-    ($rollup sd :activity :gender)
-    ($order :activity :desc))
+     ($rollup sd :activity :gender)
+     ($order :activity :desc))
+
+;; scale age by gender
+;; method 1 - relation based
+(def scale-1
+  (let [mu_db ($rollup mean :age :gender ds)
+        sd_db ($rollup sd :age :gender ds)
+        scale (fn [& {:keys [x mu sd]}]
+                (div (- x mu) sd))]
+    (map (fn [a g]
+           (let [mu (->>
+                     ($where {:gender g} mu_db)
+                     ($ :age))
+                 sd (->>
+                     ($where {:gender g} sd_db)
+                     ($ :age))]
+             (scale :x a :mu mu :sd sd)))
+         ($ :age ds) ($ :gender ds))))
+
+;; method 2 - vector based
+(def scale-2
+  (let [mu_db (col-names ($rollup mean :age :gender ds)
+                         [:gender :avg-age])
+        sd_db (col-names ($rollup sd :age :gender ds)
+                         [:gender :sd-age])
+        mu ($ :avg-age ($join [:gender :gender] mu_db ds))
+        sd ($ :sd-age ($join [:gender :gender] sd_db ds))
+        scale (fn [& {:keys [x mu sd]}]
+                (div (minus x mu) sd))]
+    (scale :x ($ :age ds) :mu mu :sd sd)))
+
+;; bind scales as a new column
+(conj-cols ds (dataset [:scale] scale-2))
+
+;; $group-by can be useful for split-apply-combine
+
+($group-by [:gender] ds)
+
+)
 
 ;; clojure.core
 
