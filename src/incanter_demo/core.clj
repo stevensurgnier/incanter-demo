@@ -110,10 +110,10 @@
 
 (defn flat-map [x] (interleave (keys x) (vals x)))
 
-(defn create-view [config dataset]
-  (let [{:keys [select where]} config]
-    (apply (partial sel ($where where dataset))
-           (flat-map select))))
+(defn create-view
+  [{:keys [select where]} dataset]
+  (apply (partial sel ($where where dataset))
+         (flat-map select)))
 
 (def query-config
   {:select {:rows (range 4)
