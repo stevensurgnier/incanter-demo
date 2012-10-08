@@ -4,8 +4,7 @@ Basic data processing operations in clojure are presented using incanter.
 * row selection
 * column selection
 * create "views" of your dataset
-* apply functions by row
-* apply functions by column
+* apply functions to columns
 * apply functions to groups of rows
 * reshape your data (similar to reshape in R) with deshape and shape
 

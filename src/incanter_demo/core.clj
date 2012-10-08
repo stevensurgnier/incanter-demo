@@ -82,10 +82,9 @@
 ($where #(> (:age %) 25) ds)
 
 ;; clojure.core
-;; remove index
 (filter #(> (:age %) 25) user-info)
-;; keep index
-(filter #(> (-> % val :age) 25) user-info)
+;; with index
+(filter #(> (-> % val :age) 25) user-info-indexed)
 
 
 ;; ---- Selecting Columns ----
@@ -129,7 +128,7 @@
 (age-gender-query-partial ds)
 
 
-;; ---- Applyiing functions to columns ----
+;; ---- Apply functions to columns ----
 
 (with-data ds
   [(mean ($ :age))
@@ -148,11 +147,10 @@
 ($order [:gender :age] :desc ds)
 
 ;; clojure.core
-;; remove index
 (sort-by :age user-info)
 ;; two level sort
 (sort-by (juxt :gender :age) user-info)
-;; keep index
+;; with index
 (sort-by #((juxt :gender :age) (val %)) user-info-indexed)
 
 
