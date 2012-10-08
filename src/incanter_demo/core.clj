@@ -67,7 +67,7 @@
 ($ (range 2 4) :all ds)
 ($ [0 1 2] [:age :gender] ds)
 
-(sel ds :rows (range 4) :cols [:age :gender])
+(sel ds :rows (range 4))
 ;; the filter predictate accepts a vector not a map
 (sel ds :filter #(> (nth % 0) 25))
 ;; don't do this
@@ -99,7 +99,9 @@
 (reduce #(conj %1 ((juxt :gender :age) %2))
         () user-info)
 
-;; ---- Create Views ----
+
+;; ---- Creating Views ----
+
 (sel ($where {:gender :m} ds)
      :rows (range 4)
      :cols [:age :gender])
@@ -128,7 +130,7 @@
 (age-gender-query-partial ds)
 
 
-;; ---- Apply functions to columns ----
+;; ---- Applying functions to columns ----
 
 (with-data ds
   [(mean ($ :age))
